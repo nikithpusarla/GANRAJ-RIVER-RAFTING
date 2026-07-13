@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;700;800;900&display=swap" rel="stylesheet">
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
 
   <style>
     /* Exact Color System as specified */
@@ -130,11 +130,15 @@
     }
     canvas {
       display: block; position: absolute;
+      transform: translateZ(0);
+      will-change: transform;
       top: 0; left: 0; width: 100%; height: 100%;
       user-select: none;
     }
     .hero-overlay {
       position: absolute;
+      transform: translateZ(0);
+      will-change: transform, opacity;
       top: 0; left: 0; width: 100%; height: 100%;
       display: flex; flex-direction: column;
       justify-content: center; align-items: center;
@@ -386,7 +390,7 @@
   <section class="section amenities" id="amenities">
     <div class="split-layout">
       <div class="image-block">
-        <img src="file:///C:/Users/nikit/.gemini/antigravity-ide/brain/cb0b91d9-f525-420c-917a-e91c95f455d3/resort_stay_1783941055739.png" alt="Premium Nature Resort Stay with Pool">
+        <img src="file:///C:/Users/nikit/.gemini/antigravity-ide/brain/cb0b91d9-f525-420c-917a-e91c95f455d3/resort_stay_1783941055739.png" alt="Premium Nature Resort Stay with Pool" loading="lazy" decoding="async">
       </div>
       <div>
         <h2>All-Inclusive Resort Stay</h2>
@@ -469,7 +473,7 @@
     </a>
 
     <div class="map-container">
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120935.91893344605!2d73.11181268686646!3d18.435728042407222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be82522778ffecb%3A0x6bba8dc17eb7203b!2sKolad%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <iframe loading="lazy" decoding="async" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120935.91893344605!2d73.11181268686646!3d18.435728042407222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be82522778ffecb%3A0x6bba8dc17eb7203b!2sKolad%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
   </section>
 
@@ -487,7 +491,9 @@
 
   <script>
     // Initialize Icons
-    lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
 
     // Navbar Scroll Effect
     window.addEventListener('scroll', () => {
@@ -510,13 +516,14 @@
     const imageSeq = { frame: 0 };
     
     // Frames folder
-    const imgFolder = "ezgif-74dc65c3b7383343-jpg (1)";
+    const imgFolder = "frames-webp";
     const getImagePath = (index) => {
       const num = (index + 1).toString().padStart(3, '0');
-      return `./${imgFolder}/ezgif-frame-${num}.jpg`;
+      return `./${imgFolder}/ezgif-frame-${num}.webp`;
     };
 
     let loadedCount = 0;
+    const preloadTarget = 15;
     const progressEl = document.getElementById("progress");
     const loaderEl = document.getElementById("loader");
 
@@ -587,23 +594,38 @@
     }
 
     function preloadImages() {
+      // First, create all 300 Image objects in the array
       for (let i = 0; i < frameCount; i++) {
-        const img = new Image();
-        img.onload = img.onerror = () => {
-          loadedCount++;
-          const percent = Math.floor((loadedCount / frameCount) * 100);
-          progressEl.innerText = `Loading Adventure ${percent}%`;
-          if (loadedCount === frameCount) {
+        images.push(new Image());
+      }
+      
+      // Only wait for the first 'preloadTarget' frames to remove the loader
+      let initialLoaded = 0;
+      for (let i = 0; i < preloadTarget; i++) {
+        images[i].onload = images[i].onerror = () => {
+          initialLoaded++;
+          const percent = Math.floor((initialLoaded / preloadTarget) * 100);
+          if(progressEl) progressEl.innerText = `Loading Adventure ${percent}%`;
+          
+          if (initialLoaded === preloadTarget) {
             initAnimation();
+            backgroundLoadRest(); // Silently load the rest
           }
         };
-        img.src = getImagePath(i);
-        images.push(img);
+        images[i].src = getImagePath(i);
+      }
+    }
+
+    function backgroundLoadRest() {
+      for (let i = preloadTarget; i < frameCount; i++) {
+        images[i].src = getImagePath(i);
       }
     }
 
     // Kickoff Preloader
-    preloadImages();
+    window.addEventListener('load', () => {
+       preloadImages();
+    });
 
     // Section entry animations
     gsap.utils.toArray('.card').forEach((card, i) => {
