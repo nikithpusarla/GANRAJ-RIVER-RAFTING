@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;700;800;900&display=swap" rel="stylesheet">
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <script src="https://unpkg.com/lucide@latest" defer></script>
 
   <style>
@@ -595,6 +595,7 @@
 
     let isImagesReady = false;
     let isDomReady = document.readyState !== 'loading';
+    let isInitCalled = false;
 
     document.addEventListener('DOMContentLoaded', () => {
       isDomReady = true;
@@ -602,7 +603,8 @@
     });
 
     function checkInit() {
-      if (isImagesReady && isDomReady && typeof gsap !== 'undefined') {
+      if (!isInitCalled && isImagesReady && isDomReady && typeof gsap !== 'undefined') {
+        isInitCalled = true;
         initAnimation();
         backgroundLoadRest();
       }
