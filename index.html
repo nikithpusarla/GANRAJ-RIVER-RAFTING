@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ganraj River Rafting - Kolad</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;700;800;900&display=swap" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Exact Color System as specified */
+    :root {
+      --primary: #0D2B3E;     /* Deep Navy: Header/nav bg, footer, body text, headings */
+      --secondary: #1C7C9C;   /* River Teal: Section backgrounds, links, icons, secondary buttons */
+      --accent: #E8620C;      /* Rafting Orange: CTA buttons, hover states, badges, price highlights */
+      --accent-hover: #C24E08;/* Darker Orange for hover */
+      --yellow: #F2B705;      /* Raft Yellow: Micro-highlights, hover underlines */
+      --green: #3C7A4E;       /* Forest Green: Trust badges, eco/nature callouts, secondary icons */
+      --bg-light: #F8F6F1;    /* Off-White: Main page background */
+      --text-slate: #5A6B72;  /* Slate Gray: Body copy on light bg, captions, borders */
+      --white: #ffffff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-slate);
+      background-color: var(--bg-light);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; color: var(--primary); }
+    a { text-decoration: none; color: inherit; }
+
+    /* Loader */
+    .loader {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--primary);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 9999; transition: opacity 0.5s ease;
+    }
+    .loader.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 50px; height: 50px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-left-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress { color: var(--bg-light); font-weight: bold; font-family: 'Outfit'; font-size: 1.2rem; }
+
+    /* Navbar */
+    .navbar {
+      position: fixed; top: 0; width: 100%;
+      padding: 1rem 5%;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 1000; transition: all 0.3s ease;
+    }
+    /* Nav bar transparent -> navy #0D2B3E on scroll */
+    .navbar.scrolled {
+      background: var(--primary);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      padding: 0.8rem 5%;
+    }
+    
+    .logo { display: flex; align-items: center; gap: 15px; }
+    .logo img { height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .logo-text {
+      font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 900;
+      color: var(--white); transition: color 0.3s ease;
+      text-shadow: 1px 1px 5px rgba(13, 43, 62, 0.5); /* Navy drop shadow */
+    }
+    .navbar.scrolled .logo-text { text-shadow: none; }
+
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { 
+      color: var(--white); font-weight: 600; text-transform: uppercase; 
+      font-size: 0.95rem; transition: color 0.3s ease; 
+      text-shadow: 1px 1px 3px rgba(13, 43, 62, 0.5); 
+    }
+    .navbar.scrolled .nav-links a { text-shadow: none; }
+    .nav-links a:hover { color: var(--yellow); }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--accent); color: var(--white) !important;
+      padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 700;
+      transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+      border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 15px rgba(232, 98, 12, 0.3); text-shadow: none !important;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover); 
+      color: var(--yellow) !important; /* Yellow text on hover as requested */
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(194, 78, 8, 0.5);
+    }
+    
+    .btn-secondary {
+      background: transparent; color: var(--white) !important;
+      padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 700;
+      transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+      border: 2px solid var(--secondary); cursor: pointer; display: inline-block;
+      text-shadow: none !important;
+    }
+    .btn-secondary:hover {
+      background: var(--secondary);
+      color: var(--white) !important;
+      transform: translateY(-2px);
+    }
+
+    /* Scroll Sequence Hero */
+    #sequence-container {
+      width: 100%; height: 100vh;
+      position: relative; overflow: hidden;
+      background-color: var(--primary); /* Deep Navy backfill */
+    }
+    canvas {
+      display: block; position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      user-select: none;
+    }
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      text-align: center;
+      /* Subtle teal tint */
+      background: rgba(13, 43, 62, 0.2); 
+      pointer-events: none;
+    }
+    
+    .hero-title {
+      font-size: clamp(3.5rem, 8vw, 8rem);
+      color: var(--white);
+      /* Navy drop-shadow for legibility over water footage */
+      text-shadow: 2px 4px 12px rgba(13, 43, 62, 0.8), 0 0 40px rgba(13, 43, 62, 0.5);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .hero-subtitle {
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      color: var(--yellow);
+      font-weight: 700;
+      text-shadow: 1px 2px 8px rgba(13, 43, 62, 0.8);
+      margin-bottom: 2.5rem;
+      letter-spacing: 1px;
+    }
+    
+    .hero-buttons {
+      pointer-events: auto;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Sections */
+    .section { padding: 6rem 5%; }
+    .section-title { text-align: center; margin-bottom: 3.5rem; }
+    .section-title h2 { font-size: 3rem; margin-bottom: 0.5rem; color: var(--primary); font-weight: 900;}
+    .section-title p { color: var(--text-slate); font-weight: 500; font-size: 1.1rem; }
+
+    /* Packages */
+    .grid-4 {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem; max-width: 1200px; margin: 0 auto;
+    }
+    .card {
+      background: var(--white); border-radius: 20px; padding: 2.5rem 2rem;
+      text-align: center; box-shadow: 0 10px 30px rgba(28, 124, 156, 0.1);
+      transition: all 0.4s ease; 
+      border-top: 5px solid var(--secondary);
+      border-bottom: 1px solid rgba(28, 124, 156, 0.1);
+      position: relative; display: flex; flex-direction: column;
+    }
+    .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(28, 124, 156, 0.2); }
+    .card-popular { border-top: 5px solid var(--accent); }
+    .card-popular::before {
+      content: 'Most Popular'; position: absolute;
+      top: 15px; right: -35px; background: var(--accent); color: var(--white);
+      padding: 5px 40px; transform: rotate(45deg); font-size: 0.8rem; font-weight: 700;
+    }
+    .card h3 { font-size: 1.6rem; margin-bottom: 1rem; color: var(--primary); font-weight: 800;}
+    
+    /* Price highlights in Orange */
+    .price { font-size: 2.8rem; font-weight: 800; color: var(--accent); margin-bottom: 0.5rem; font-family: 'Outfit'; }
+    .price span { font-size: 1rem; color: var(--text-slate); font-weight: 500; }
+    
+    .card ul { list-style: none; margin: 2rem 0; text-align: left; flex-grow: 1; }
+    .card ul li { margin-bottom: 1.2rem; display: flex; align-items: center; gap: 12px; color: var(--text-slate); font-weight: 500; font-size: 1.05rem;}
+    
+    /* Eco/Safety Icons in Forest Green */
+    .card ul li i.check { color: var(--green); }
+    /* Missing items in Slate Gray */
+    .card ul li i.cross { color: rgba(90, 107, 114, 0.4); }
+
+    /* Amenities (Contrast Section Block) */
+    .amenities { background: rgba(28, 124, 156, 0.05); /* Teal at 5% opacity tint */ }
+    .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .image-block { border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(13, 43, 62, 0.15); border: 1px solid rgba(28, 124, 156, 0.1); }
+    .image-block img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .amenities-list { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+    .amenity-item {
+      display: flex; align-items: center; gap: 15px; padding: 1.2rem;
+      background: var(--white); border-radius: 12px; font-weight: 600;
+      border-left: 5px solid var(--secondary); color: var(--primary); font-size: 1.05rem;
+      box-shadow: 0 4px 10px rgba(28, 124, 156, 0.05);
+    }
+    .amenity-item i { color: var(--secondary); }
+    
+    /* Location (Contrast Solid Block) */
+    .location { background: var(--secondary); color: var(--white); text-align: center; }
+    .location h2 { color: var(--white); }
+    .location p { color: var(--bg-light); margin-bottom: 2.5rem; opacity: 0.9; }
+    .map-container { max-width: 1000px; margin: 2.5rem auto; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(13, 43, 62, 0.4); border: 4px solid rgba(255,255,255,0.1); }
+
+    /* Booking Section */
+    .booking-section { background: #0A1B28; color: var(--white); }
+    .booking-card { background: #142938; border-radius: 12px; padding: 2.5rem; max-width: 900px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .booking-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; color: #8C9BA5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .badge { background: var(--green); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; margin-left: 8px; }
+    .form-control { width: 100%; background: #1E3445; border: 1px solid #2A4356; color: var(--white); padding: 12px 15px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.3s; }
+    .form-control:focus { border-color: var(--secondary); }
+    .addon-section { margin-bottom: 2rem; }
+    .addon-section > label { display: block; font-size: 0.8rem; font-weight: 700; color: #8C9BA5; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .addon-card { background: #1E3445; border: 1px solid #2A4356; border-radius: 8px; padding: 15px; }
+    .checkbox-container { display: flex; align-items: center; position: relative; padding-left: 35px; cursor: pointer; user-select: none; }
+    .checkbox-container input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+    .checkmark { position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 22px; width: 22px; background-color: #0A1B28; border: 1px solid #2A4356; border-radius: 4px; }
+    .checkbox-container:hover input ~ .checkmark { background-color: #142938; }
+    .checkbox-container input:checked ~ .checkmark { background-color: var(--accent); border-color: var(--accent); }
+    .checkmark:after { content: ""; position: absolute; display: none; }
+    .checkbox-container input:checked ~ .checkmark:after { display: block; }
+    .checkbox-container .checkmark:after { left: 7px; top: 3px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .addon-details strong { display: block; color: var(--white); font-size: 1rem; }
+    .addon-details span { display: block; color: #8C9BA5; font-size: 0.85rem; }
+    .booking-footer { display: flex; justify-content: space-between; align-items: center; background: #0A1B28; padding: 20px; border-radius: 12px; margin-top: 2rem; }
+    .price-label { font-size: 0.8rem; font-weight: 700; color: #8C9BA5; letter-spacing: 1px; text-transform: uppercase; }
+    .total-price { font-size: 2.8rem; font-weight: 900; color: var(--accent); font-family: 'Outfit', sans-serif; line-height: 1; margin-top: 5px; }
+    .btn-whatsapp { background: #25D366; color: white; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 700; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.3s, transform 0.2s; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); font-family: 'Inter', sans-serif; }
+    .btn-whatsapp:hover { background: #1ebc59; transform: translateY(-2px); }
+    @media (max-width: 768px) {
+      .booking-row { grid-template-columns: 1fr; }
+      .booking-footer { flex-direction: column; gap: 1.5rem; text-align: center; }
+      .btn-whatsapp { width: 100%; justify-content: center; }
+    }
+
+    /* Footer */
+    footer { background: var(--primary); color: var(--white); padding: 5rem 5% 3rem; text-align: center; }
+    .footer-content { display: flex; flex-direction: column; align-items: center; }
+    .footer-content img { height: 100px; margin-bottom: 1.5rem; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .footer-content h2 { color: var(--white); font-weight: 900; letter-spacing: 1px;}
+    .footer-content p { color: var(--bg-light); opacity: 0.8;}
+    .footer-bottom { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: var(--secondary); }
+
+    @media (max-width: 900px) {
+      .split-layout { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Preloader -->
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <div class="progress" id="progress">Loading Adventure 0%</div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="logo">
+      <img src="./IMG-20250608-WA0008.jpg.jpeg" alt="Ganraj River Rafting Logo">
+      <span class="logo-text">GANRAJ <span style="color: var(--accent);">RAFTING</span></span>
+    </div>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#packages">Packages</a>
+      <a href="#amenities">Resort & Stay</a>
+      <a href="#location">Location</a>
+      <a href="#packages" class="btn-primary">Book Now</a>
+    </div>
+  </nav>
+
+  <!-- Hero Scroll Sequence -->
+  <div id="sequence-container">
+    <canvas id="sequence-canvas"></canvas>
+    
+    <div class="hero-overlay" id="home">
+      <h1 class="hero-title" id="hero-title">ADRENALINE MEETS<br>THE WILD</h1>
+      <p class="hero-subtitle" id="hero-subtitle">&mdash; Only in Kolad</p>
+      <div class="hero-buttons">
+         <a href="#packages" class="btn-primary" style="padding: 1.2rem 2.5rem; font-size: 1.1rem;">Book Now</a>
+         <a href="#amenities" class="btn-secondary" style="padding: 1.2rem 2.5rem; font-size: 1.1rem;">Learn More</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Packages Section -->
+  <section class="section packages" id="packages">
+    <div class="section-title">
+      <h2>Choose Your Adventure</h2>
+      <p>Flexible packages for everyone. Rafting only, or all-inclusive resort stays.</p>
+    </div>
+
+    <div class="grid-4">
+      <!-- Weekday -->
+      <div class="card">
+        <h3>Weekdays Rafting</h3>
+        <div class="price">₹1200<span>/person</span></div>
+        <p style="color:var(--text-slate); font-size:0.95rem">Perfect for a quick weekday thrill.</p>
+        <ul>
+          <li><i data-lucide="shield-check" class="check"></i> Safety Gear & Guide</li>
+          <li><i data-lucide="waves" class="check"></i> River Rafting</li>
+          <li><i data-lucide="x-circle" class="cross"></i> No Stay</li>
+          <li><i data-lucide="x-circle" class="cross"></i> No Meals</li>
+        </ul>
+        <a href="tel:+910000000000" class="btn-primary" style="width:100%">Book Now</a>
+      </div>
+
+      <!-- Weekend -->
+      <div class="card">
+        <h3>Weekends Rafting</h3>
+        <div class="price">₹1700<span>/person</span></div>
+        <p style="color:var(--text-slate); font-size:0.95rem">Action-packed weekend escape.</p>
+        <ul>
+          <li><i data-lucide="shield-check" class="check"></i> Safety Gear & Guide</li>
+          <li><i data-lucide="waves" class="check"></i> River Rafting</li>
+          <li><i data-lucide="x-circle" class="cross"></i> No Stay</li>
+          <li><i data-lucide="x-circle" class="cross"></i> No Meals</li>
+        </ul>
+        <a href="tel:+910000000000" class="btn-primary" style="width:100%">Book Now</a>
+      </div>
+
+      <!-- Weekday All Inclusive -->
+      <div class="card card-popular">
+        <h3>Weekdays All-Inclusive</h3>
+        <div class="price">₹1700<span>/person</span></div>
+        <p style="color:var(--text-slate); font-size:0.95rem">Complete resort experience.</p>
+        <ul>
+          <li><i data-lucide="leaf" class="check"></i> Eco-Nature Resort Stay</li>
+          <li><i data-lucide="shield-check" class="check"></i> Rafting & Kayaking</li>
+          <li><i data-lucide="utensils" class="check"></i> 4 Meals (L, D, BF, Hi-Tea)</li>
+          <li><i data-lucide="waves" class="check"></i> Swimming Pool Access</li>
+        </ul>
+        <a href="tel:+910000000000" class="btn-primary" style="width:100%">Book Now</a>
+      </div>
+
+      <!-- Weekend All Inclusive -->
+      <div class="card card-popular" style="border-top-color: var(--yellow)">
+        <h3>Weekends All-Inclusive</h3>
+        <div class="price">₹2000<span>/person</span></div>
+        <p style="color:var(--text-slate); font-size:0.95rem">The ultimate weekend getaway.</p>
+        <ul>
+          <li><i data-lucide="leaf" class="check"></i> Eco-Nature Resort Stay</li>
+          <li><i data-lucide="shield-check" class="check"></i> Rafting & Kayaking</li>
+          <li><i data-lucide="utensils" class="check"></i> 4 Meals (L, D, BF, Hi-Tea)</li>
+          <li><i data-lucide="waves" class="check"></i> Swimming Pool Access</li>
+        </ul>
+        <a href="tel:+910000000000" class="btn-primary" style="width:100%">Book Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Amenities -->
+  <section class="section amenities" id="amenities">
+    <div class="split-layout">
+      <div class="image-block">
+        <img src="file:///C:/Users/nikit/.gemini/antigravity-ide/brain/cb0b91d9-f525-420c-917a-e91c95f455d3/resort_stay_1783941055739.png" alt="Premium Nature Resort Stay with Pool">
+      </div>
+      <div>
+        <h2>All-Inclusive Resort Stay</h2>
+        <p style="margin-top:1.5rem; color:var(--text-slate); font-size: 1.1rem; line-height: 1.8;">Upgrade your rafting experience with our all-inclusive packages. Relax by the pristine pool after an adrenaline-filled day on the rapids, enjoy delicious hot meals, and sleep comfortably surrounded by the lush green nature of Kolad.</p>
+        
+        <div class="amenities-list">
+          <div class="amenity-item"><i data-lucide="home"></i> Comfortable Stay</div>
+          <div class="amenity-item"><i data-lucide="waves"></i> Swimming Pool</div>
+          <div class="amenity-item"><i data-lucide="utensils"></i> Fresh Meals</div>
+          <div class="amenity-item"><i data-lucide="coffee"></i> Evening Hi-Tea</div>
+          <div class="amenity-item"><i data-lucide="anchor"></i> Kayaking Access</div>
+          <div class="amenity-item" style="border-left-color: var(--green);"><i data-lucide="leaf" style="color: var(--green);"></i> Eco-Friendly</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booking Section -->
+  <section class="section booking-section" id="booking">
+    <div class="section-title">
+      <h2 style="color: var(--white);">Book Your Slot Instantly</h2>
+      <p style="color: var(--bg-light); opacity: 0.8; max-width: 600px; margin: 0 auto;">Select options below to calculate instant package pricing. Ready? Simply submit to get booked on WhatsApp in 1 click.</p>
+      <div style="width: 60px; height: 3px; background: var(--accent); margin: 20px auto 0;"></div>
+    </div>
+    <div class="booking-card">
+      <div class="booking-row">
+        <div class="form-group">
+          <label>SELECT PACKAGE <span class="badge" id="package-badge">Weekday Price</span></label>
+          <select id="package-select" class="form-control">
+            <option value="1200" data-type="weekday">River Rafting (No Lunch) - ₹1200</option>
+            <option value="1700" data-type="weekend">River Rafting (No Lunch) [Weekend] - ₹1700</option>
+            <option value="1700" data-type="weekday">All Inclusive Resort Stay - ₹1700</option>
+            <option value="2000" data-type="weekend">All Inclusive Resort Stay [Weekend] - ₹2000</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>GUESTS (MIN. 1)</label>
+          <input type="number" id="guests-input" class="form-control" value="2" min="1">
+        </div>
+        <div class="form-group">
+          <label>ADVENTURE DATE</label>
+          <input type="date" id="date-input" class="form-control">
+        </div>
+      </div>
+      <div class="addon-section">
+        <label>ADD-ON EXTRAS</label>
+        <div class="addon-card">
+          <label class="checkbox-container">
+            <input type="checkbox" id="kayak-addon" value="300">
+            <span class="checkmark"></span>
+            <div class="addon-details">
+              <strong>Lakeside Kayaking (+₹300 / person)</strong>
+              <span>1 hour leisure kayaking activity</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="booking-footer">
+        <div class="price-calc">
+          <span class="price-label">ESTIMATED TOTAL PRICE</span>
+          <div class="total-price">₹<span id="total-price-display">2400</span></div>
+        </div>
+        <button id="whatsapp-btn" class="btn-whatsapp">
+          <i data-lucide="message-circle" style="width: 24px; height: 24px;"></i> Confirm & Book on WhatsApp
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Location -->
+  <section class="section location" id="location">
+    <div class="section-title" style="margin-bottom: 2rem;">
+      <h2>Find Us in Kolad</h2>
+      <p style="color: var(--bg-light)">Easy to reach, hard to leave.</p>
+    </div>
+    
+    <a href="https://share.google/W3X6bLNjjJizas8Vn" target="_blank" class="btn-primary" style="background: var(--yellow); color: var(--primary) !important; font-size: 1.15rem; padding: 1rem 2.5rem; margin-bottom: 2rem; display: inline-flex; align-items: center; justify-content: center;">
+      <i data-lucide="map-pin" style="margin-right:8px; width:24px;"></i> 
+      Open in Google Maps
+    </a>
+
+    <div class="map-container">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120935.91893344605!2d73.11181268686646!3d18.435728042407222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be82522778ffecb%3A0x6bba8dc17eb7203b!2sKolad%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <img src="./IMG-20250608-WA0008.jpg.jpeg" alt="Ganraj River Rafting Logo Footer">
+      <h2>GANRAJ RIVER RAFTING</h2>
+      <p style="margin-top: 1.5rem; max-width: 450px; font-size: 1.1rem; line-height: 1.6;">Experience the best white water river rafting in Kolad, Maharashtra. Safety, Thrill, and Nature combined.</p>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Ganraj River Rafting. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Icons
+    lucide.createIcons();
+
+    // Navbar Scroll Effect
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // --- GSAP & ScrollTrigger for Canvas Sequence ---
+    gsap.registerPlugin(ScrollTrigger);
+
+    const canvas = document.getElementById("sequence-canvas");
+    const context = canvas.getContext("2d");
+    
+    const frameCount = 300;
+    const images = [];
+    const imageSeq = { frame: 0 };
+    
+    // Frames folder
+    const imgFolder = "ezgif-74dc65c3b7383343-jpg (1)";
+    const getImagePath = (index) => {
+      const num = (index + 1).toString().padStart(3, '0');
+      return `./${imgFolder}/ezgif-frame-${num}.jpg`;
+    };
+
+    let loadedCount = 0;
+    const progressEl = document.getElementById("progress");
+    const loaderEl = document.getElementById("loader");
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      context.scale(dpr, dpr);
+      render();
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    function render() {
+      const img = images[imageSeq.frame];
+      if (!img || !img.complete) return;
+      
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      context.clearRect(0, 0, w, h);
+      
+      const scale = Math.max(w / img.width, h / img.height);
+      const scaledWidth = img.width * scale;
+      const scaledHeight = img.height * scale;
+      
+      const x = (w / 2) - (scaledWidth / 2);
+      const y = (h / 2) - (scaledHeight / 2);
+      
+      context.drawImage(img, x, y, scaledWidth, scaledHeight);
+    }
+
+    function initAnimation() {
+      resizeCanvas();
+      
+      // Pin the sequence and scrub the frames
+      gsap.to(imageSeq, {
+        frame: frameCount - 1,
+        snap: "frame",
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#sequence-container",
+          start: "top top",
+          end: "+=3500", // Scroll length to scrub 300 frames
+          scrub: 0.5,
+          pin: true,
+          anticipatePin: 1
+        },
+        onUpdate: render
+      });
+
+      // Fade out the hero overlay elements slightly sooner so they don't block
+      gsap.to(".hero-overlay", {
+        opacity: 0,
+        scrollTrigger: {
+          trigger: "#sequence-container",
+          start: "top top",
+          end: "+=800",
+          scrub: true
+        }
+      });
+      
+      loaderEl.classList.add("hidden");
+      setTimeout(() => loaderEl.remove(), 500);
+    }
+
+    function preloadImages() {
+      for (let i = 0; i < frameCount; i++) {
+        const img = new Image();
+        img.onload = img.onerror = () => {
+          loadedCount++;
+          const percent = Math.floor((loadedCount / frameCount) * 100);
+          progressEl.innerText = `Loading Adventure ${percent}%`;
+          if (loadedCount === frameCount) {
+            initAnimation();
+          }
+        };
+        img.src = getImagePath(i);
+        images.push(img);
+      }
+    }
+
+    // Kickoff Preloader
+    preloadImages();
+
+    // Section entry animations
+    gsap.utils.toArray('.card').forEach((card, i) => {
+      gsap.from(card, {
+        scrollTrigger: {
+          trigger: card,
+          start: "top bottom-=50",
+          toggleActions: "play none none reverse"
+        },
+        y: 40, opacity: 0, duration: 0.6, delay: i * 0.1
+      });
+    });
+
+    gsap.from('.image-block', {
+      scrollTrigger: { trigger: '.amenities', start: "top center" },
+      x: -50, opacity: 0, duration: 0.8
+    });
+
+    gsap.from('.amenities-list .amenity-item', {
+      scrollTrigger: { trigger: '.amenities', start: "top center" },
+      x: 50, opacity: 0, duration: 0.5, stagger: 0.1
+    });
+
+    // Booking Form Logic
+    const packageSelect = document.getElementById('package-select');
+    const guestsInput = document.getElementById('guests-input');
+    const dateInput = document.getElementById('date-input');
+    const kayakAddon = document.getElementById('kayak-addon');
+    const totalPriceDisplay = document.getElementById('total-price-display');
+    const packageBadge = document.getElementById('package-badge');
+    const whatsappBtn = document.getElementById('whatsapp-btn');
+
+    // Set today as min date
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+    if(!dateInput.value) dateInput.value = today;
+
+    function calculatePrice() {
+      const packagePrice = parseInt(packageSelect.value);
+      const guests = Math.max(1, parseInt(guestsInput.value) || 1);
+      const addonPrice = kayakAddon.checked ? parseInt(kayakAddon.value) : 0;
+      
+      const type = packageSelect.options[packageSelect.selectedIndex].getAttribute('data-type');
+      if(type === 'weekday') {
+         packageBadge.innerText = 'Weekday Price';
+         packageBadge.style.background = 'var(--green)';
+      } else {
+         packageBadge.innerText = 'Weekend Price';
+         packageBadge.style.background = 'var(--accent)';
+      }
+
+      const total = (packagePrice * guests) + (addonPrice * guests);
+      totalPriceDisplay.innerText = total.toLocaleString('en-IN');
+    }
+
+    packageSelect.addEventListener('change', calculatePrice);
+    guestsInput.addEventListener('input', calculatePrice);
+    kayakAddon.addEventListener('change', calculatePrice);
+
+    // Initial calc
+    calculatePrice();
+
+    // WhatsApp URL generation
+    whatsappBtn.addEventListener('click', () => {
+      const pkgName = packageSelect.options[packageSelect.selectedIndex].text;
+      const guests = guestsInput.value;
+      const date = dateInput.value;
+      const kayaking = kayakAddon.checked ? 'Yes' : 'No';
+      const total = totalPriceDisplay.innerText;
+
+      const message = `Hello Ganraj Rafting! I would like to book a slot.\n\n*Package:* ${pkgName}\n*Date:* ${date}\n*Guests:* ${guests}\n*Add-on Kayaking:* ${kayaking}\n*Estimated Total:* ₹${total}\n\nPlease confirm availability.`;
+      
+      const encodedMessage = encodeURIComponent(message);
+      window.open(`https://wa.me/910000000000?text=${encodedMessage}`, '_blank');
+    });
+  </script>
+</body>
+</html>
