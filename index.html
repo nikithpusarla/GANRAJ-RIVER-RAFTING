@@ -542,8 +542,15 @@
     window.addEventListener("resize", resizeCanvas);
 
     function render() {
-      const img = images[imageSeq.frame];
-      if (!img || !img.complete) return;
+      let frameToDraw = Math.floor(imageSeq.frame);
+      // Search backwards for the most recently loaded frame
+      while (frameToDraw >= 0 && (!images[frameToDraw] || !images[frameToDraw].complete)) {
+        frameToDraw--;
+      }
+      
+      if (frameToDraw < 0) return;
+      
+      const img = images[frameToDraw];
       
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -633,6 +640,13 @@
 
     function backgroundLoadRest() {
       for (let i = preloadTarget; i < frameCount; i++) {
+        images[i].onload = () => {
+          // If the newly loaded frame is at or before our current scroll position,
+          // trigger a render to update the frozen canvas with this newer frame.
+          if (Math.floor(imageSeq.frame) >= i) {
+            requestAnimationFrame(render);
+          }
+        };
         images[i].src = getImagePath(i);
       }
     }
